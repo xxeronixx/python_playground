@@ -3,34 +3,24 @@ import cv2
 import os
 
 def read_salt_from_image(image_file, salt_length):
-    # Use the 'os.path.expanduser' function to resolve the '~' in the file path
     image_file = os.path.expanduser(image_file)
-
-    # Check if the file exists before attempting to read
     if not os.path.exists(image_file):
         print(f"Error: The file '{image_file}' does not exist.")
         return None
-
-    # Read the image from file
     img = cv2.imread(image_file)
-
     if img is None:
         print(f"Error: Unable to read the image at '{image_file}'.")
         return None
-
-    # Convert the image to RGB format
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # Extract salt from the least significant bit of each pixel channel
     salt_binary = ""
     bits_read = 0
-
     for i in range(img_rgb.shape[0]):
         for j in range(img_rgb.shape[1]):
             for k in range(img_rgb.shape[2]):
                 salt_binary += str(img_rgb[i, j, k] & 1)
                 bits_read += 1
-
                 if bits_read == salt_length * 8:  # Stop when you have enough bits
                     break
             if bits_read == salt_length * 8:
@@ -53,14 +43,11 @@ def read_salt_from_image(image_file, salt_length):
 
 if __name__ == "__main__":
     # Provide the full absolute path to the QR code image
-    image_file = "~/Downloads/qr_code_image.png"
-
+    image_file = "qr_code_image.png"
     # Set the length of salt you want to extract in bytes
     salt_length = 16
-
     # Read salt from the saved image
     qr_code_data, read_salt= read_salt_from_image(image_file, salt_length)
-
     if qr_code_data:
         print("QR Code Data:", qr_code_data)
         print("Read Salt:", read_salt.hex())
