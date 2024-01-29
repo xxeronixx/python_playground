@@ -105,10 +105,10 @@ if __name__ == "__main__":
     # Generate QR code with including the input text
     qr_code_image_data = generate_qr_code(f'{username}:{site}')
 
-    # Embed salt into QR code image metadata
+    # Embed salt/password hash into QR code image metadata
     qr_code_image_data_with_hash, embedded_salt = embed_salt_into_image(qr_code_image_data, hashed_password)
     with open(f"{username}-{site}.png", "wb") as file:
         file.write(qr_code_image_data_with_hash)
 
-    # Store hash, QR code image, and salt in the database
+    # Store info in the database
     store_in_database(username, site, hashed_password, qr_code_image_data_with_hash)
