@@ -44,5 +44,3 @@ if __name__ == "__main__":
     generated_password = generate_password(input_word, password_length)
 
     print("Generated Password:", generated_password)
-
-# Generated Password: 9iu)v3hf9B-V
