@@ -1,11 +1,11 @@
 import random
 import string
-import hashlib
-
+import argon2
 
 def generate_password(input_word, length=12):
-    # Use SHA-256 hash of the input word as the seed
-    seed = int(hashlib.sha256(input_word.encode()).hexdigest(), 16)
+    # Use Argon2 hash of the input word as the seed
+    hasher = argon2.PasswordHasher()
+    seed = int.from_bytes(hasher.hash(input_word.encode()), 'big')
     random.seed(seed)
 
     # Define character sets for different types of characters
@@ -35,7 +35,6 @@ def generate_password(input_word, length=12):
     password = ''.join(password_list)
 
     return password
-
 
 if __name__ == "__main__":
     input_word = input("Enter the input word: ")
