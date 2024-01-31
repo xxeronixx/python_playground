@@ -23,7 +23,7 @@ class User(Base):
 def generate_qr_code(input_text):
     qr = qrcode.QRCode(
         version=3,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=10,
         border=2,
     )
@@ -69,9 +69,13 @@ def embed_salt_into_image(image_data, salt):
 
 # Store Hash, QR Code Image, and Salt in Database
 def store_in_database(username, password, hashed_password, qr_code_image_data):
-    # Generic SQL Session
-    engine = create_engine('mysql+pymysql://localhost/database')
+    # Connect an SQL database
+    engine = create_engine('mysql+pymysql://user:pass@localhost/database')
+
+    # Create the table (only create_all if the table doesn't exist, otherwise, you may skip it)
     Base.metadata.create_all(engine)
+
+    # Create a session to interact with the database
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -79,21 +83,14 @@ def store_in_database(username, password, hashed_password, qr_code_image_data):
     user = User(username=username, password=password, hashed_password=hashed_password, qr_code_image=qr_code_image_data)
     session.add(user)
     session.commit()
+    print(f"User '{user.username}' added to database.")
 
-    # Query and print the stored data (optional)
-    stored_user = session.query(User).first()
-    print("Stored User Data:")
-    print("Username:", stored_user.username)
-    print('Password:', stored_user.password)
-    print("Salt:", embedded_salt.hex())
-    print("Hashed Site/service:", stored_user.hashed_password)
-    print("QR Code Image Data Length:", len(stored_user.qr_code_image))
 
 if __name__ == "__main__":
     # Example input data
     username = input("User:")
-    site = input("Site or service:")
-    value_to_hash = getpass("Password:")
+    value_to_hash = getpass("Password Key:")
+    site = input("Site:")
 
     # Generate a random salt
     generated_salt = secrets.token_bytes(16)
@@ -105,10 +102,10 @@ if __name__ == "__main__":
     # Generate QR code with including the input text
     qr_code_image_data = generate_qr_code(f'{username}:{site}')
 
-    # Embed salt/password hash into QR code image metadata
-    qr_code_image_data_with_hash, embedded_salt = embed_salt_into_image(qr_code_image_data, hashed_password)
+    # Embed salt into QR code image metadata
+    qr_code_image_data_with_salt, embedded_salt = embed_salt_into_image(qr_code_image_data, generated_salt)
     with open(f"{username}-{site}.png", "wb") as file:
-        file.write(qr_code_image_data_with_hash)
+        file.write(qr_code_image_data_with_salt)
 
-    # Store info in the database
-    store_in_database(username, site, hashed_password, qr_code_image_data_with_hash)
+    # Store hash, QR code image, and salt in the database
+    store_in_database(username, site, hashed_password, qr_code_image_data_with_salt)
